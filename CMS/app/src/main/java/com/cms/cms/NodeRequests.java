@@ -5,21 +5,18 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -64,34 +61,52 @@ public class NodeRequests {
 
         @Override
         protected Void doInBackground(Void... params) {
-            ArrayList<NameValuePair> dataToSend = new ArrayList<>();
-            dataToSend.add(new BasicNameValuePair("name", user.name));
-            dataToSend.add(new BasicNameValuePair("username", user.username));
-            dataToSend.add(new BasicNameValuePair("password", user.password));
-            dataToSend.add(new BasicNameValuePair("age", user.age + ""));
-
-            HttpParams httpRequestParams = getHttpRequestParams();
-
-            HttpClient client = new DefaultHttpClient(httpRequestParams);
-            HttpPost post = new HttpPost(SERVER_ADDRESS + "addUser");
-
+            //Use HashMap, it works similar to NameValuePair
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("username", user.username);
+            dataToSend.put("name", user.name);
+            dataToSend.put("age", user.age + "");
+            dataToSend.put("password", user.password);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
             try {
-                post.setEntity(new UrlEncodedFormEntity(dataToSend));
-                client.execute(post);
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + "addUser");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                line = sb.toString();
+
+                Log.i("custom_check", "The values received in the store part are as follows:");
+                Log.i("custom_check", line);
+
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-
+            //Same return null, but if you want to return the read string (stored in line)
+            //then change the parameters of AsyncTask and return that type, by converting
+            //the string - to say JSON or user in your case
             return null;
-        }
-
-        private HttpParams getHttpRequestParams() {
-            HttpParams httpRequestParams = new BasicHttpParams();
-            HttpConnectionParams.setConnectionTimeout(httpRequestParams,
-                    CONNECTION_TIMEOUT);
-            HttpConnectionParams.setSoTimeout(httpRequestParams,
-                    CONNECTION_TIMEOUT);
-            return httpRequestParams;
         }
 
         @Override
@@ -99,6 +114,22 @@ public class NodeRequests {
             super.onPostExecute(result);
             progressDialog.dismiss();
             userCallBack.done(null);
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
         }
 
     }
@@ -114,42 +145,52 @@ public class NodeRequests {
 
         @Override
         protected User doInBackground(Void... params) {
-            ArrayList<NameValuePair> dataToSend = new ArrayList<>();
-            dataToSend.add(new BasicNameValuePair("username", user.username));
-            dataToSend.add(new BasicNameValuePair("password", user.password));
-
-            HttpParams httpRequestParams = new BasicHttpParams();
-            HttpConnectionParams.setConnectionTimeout(httpRequestParams,
-                    CONNECTION_TIMEOUT);
-            HttpConnectionParams.setSoTimeout(httpRequestParams,
-                    CONNECTION_TIMEOUT);
-
-            HttpClient client = new DefaultHttpClient(httpRequestParams);
-            HttpPost post = new HttpPost(SERVER_ADDRESS+ "getUser");
-
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("username", user.username);
+            dataToSend.put("password", user.password);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
             User returnedUser = null;
 
             try {
-                post.setEntity(new UrlEncodedFormEntity(dataToSend));
-                HttpResponse httpResponse = client.execute(post);
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + "getUser");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
-                HttpEntity entity = httpResponse.getEntity();
-                String result = EntityUtils.toString(entity);
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+
+                String result = sb.toString();
                 JSONObject jObject = new JSONObject(result);
 
                 if (jObject.length() != 0) {
                     Log.v("happened", "2");
                     String name = jObject.getString("name");
                     int age = jObject.getInt("age");
-
                     returnedUser = new User(name, age, user.username,
                             user.password);
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-
             return returnedUser;
         }
 
@@ -158,6 +199,23 @@ public class NodeRequests {
             super.onPostExecute(returnedUser);
             progressDialog.dismiss();
             userCallBack.done(returnedUser);
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
         }
     }
 }

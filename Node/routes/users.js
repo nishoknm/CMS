@@ -15,7 +15,7 @@ mongoClient.connect("mongodb://127.0.0.1:27017/cms", function (err, db) {
 router.post('/getUser', function (req, res, next) {
     var usersCollection = dbo.collection('users');
     usersCollection.findOne({
-        name: req.body.username,
+        username: req.body.username,
         password:req.body.password
     }, function(err, item) {
         res.send(item);
