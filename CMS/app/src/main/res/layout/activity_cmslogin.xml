@@ -1,39 +1,51 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:padding="10dp"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:padding="10dp">
 
 
     <TextView
-        android:text="Username"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="Email" />
 
     <EditText
-        android:id="@+id/etUsername"
+        android:id="@+id/etEmail"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:layout_height="wrap_content" />
+        android:inputType="textEmailAddress" />
 
     <TextView
-        android:text="Password"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="Password" />
 
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="match_parent"
-        android:inputType="textPassword"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:layout_height="wrap_content" />
+        android:inputType="textPassword" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Are you a ?" />
+
+    <Spinner
+        android:id="@+id/etAcc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:spinnerMode="dropdown" />
 
     <Button
         android:id="@+id/bLogin"
         android:layout_width="match_parent"
-        android:layout_marginBottom="10dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
         android:text="Login" />
 
     <TextView

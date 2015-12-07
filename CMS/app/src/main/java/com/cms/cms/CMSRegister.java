@@ -4,12 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
 
-public class CMSRegister extends AppCompatActivity implements View.OnClickListener {
+import java.util.List;
 
-    EditText etName, etAge, etUsername, etPassword;
+public class CMSRegister extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
+
+    EditText etName, etAge, etEmail, etPassword, etAddress, etSsn;
+    Spinner etDept, etAcc;
     Button bRegister;
 
     @Override
@@ -19,11 +26,20 @@ public class CMSRegister extends AppCompatActivity implements View.OnClickListen
 
         etName = (EditText) findViewById(R.id.etName);
         etAge = (EditText) findViewById(R.id.etAge);
-        etUsername = (EditText) findViewById(R.id.etUsername);
+        etEmail = (EditText) findViewById(R.id.etEmail);
         etPassword = (EditText) findViewById(R.id.etPassword);
+        etAddress = (EditText) findViewById(R.id.etAddress);
+        etDept = (Spinner) findViewById(R.id.etdpt);
+        etAcc = (Spinner) findViewById(R.id.etAcc);
+        etSsn = (EditText) findViewById(R.id.etSsn);
         bRegister = (Button) findViewById(R.id.bRegister);
 
+        etDept.setOnItemSelectedListener(this);
+        etAcc.setOnItemSelectedListener(this);
         bRegister.setOnClickListener(this);
+
+        getDepartments();
+        getAccounts();
     }
 
     @Override
@@ -31,15 +47,53 @@ public class CMSRegister extends AppCompatActivity implements View.OnClickListen
         switch (v.getId()) {
             case R.id.bRegister:
                 String name = etName.getText().toString();
-                String username = etUsername.getText().toString();
+                String email = etEmail.getText().toString();
                 String password = etPassword.getText().toString();
+                String address = etAddress.getText().toString();
+                String dept = etDept.getSelectedItem().toString();
+                String acc = etAcc.getSelectedItem().toString();
+                String ssn = etSsn.getText().toString();
                 int age = Integer.parseInt(etAge.getText().toString());
 
-                User user = new User(name, age, username, password);
+                User user = new User(name, age, email, password, address, dept, ssn, acc);
                 registerUser(user);
                 break;
         }
     }
+
+    private void getDepartments() {
+        NodeRequests serverRequest = new NodeRequests(this, "departments");
+        serverRequest.fetchCollectionAsyncTask(new GetCallback() {
+            @Override
+            public void done(List items) {
+                populateDepartments(items);
+            }
+        });
+    }
+
+    private void populateDepartments(List departments) {
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, departments);
+        etDept.setAdapter(spinnerAdapter);
+    }
+
+    private void getAccounts() {
+        NodeRequests serverRequest = new NodeRequests(this, "accounts");
+        serverRequest.fetchCollectionAsyncTask(new GetCallback() {
+            @Override
+            public void done(List accounts) {
+                accounts.remove("Admin");
+                populateAccounts(accounts);
+            }
+        });
+    }
+
+    private void populateAccounts(List accounts) {
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, accounts);
+        etAcc.setAdapter(spinnerAdapter);
+    }
+
 
     private void registerUser(User user) {
         NodeRequests serverRequest = new NodeRequests(this);
@@ -50,5 +104,18 @@ public class CMSRegister extends AppCompatActivity implements View.OnClickListen
                 startActivity(loginIntent);
             }
         });
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        Toast.makeText(
+                getApplicationContext(),
+                parent.getItemAtPosition(position).toString() + " Selected",
+                Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

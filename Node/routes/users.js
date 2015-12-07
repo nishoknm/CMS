@@ -12,12 +12,37 @@ mongoClient.connect("mongodb://127.0.0.1:27017/cms", function (err, db) {
 });
 
 /* POST users listing. */
+router.post('/getDepartments', function (req, res) {
+    var deptCollection = dbo.collection('departments');
+    deptCollection.find().toArray(function (err, docs) {
+        if (!err) {
+            res.send(docs);
+        } else {
+            console.dir(err);
+        }
+    });
+});
+
+/* POST users listing. */
+router.post('/getAccounts', function (req, res) {
+    var deptCollection = dbo.collection('accounts');
+    deptCollection.find().toArray(function (err, docs) {
+        if (!err) {
+            res.send(docs);
+        } else {
+            console.dir(err);
+        }
+    });
+});
+
+/* POST users listing. */
 router.post('/getUser', function (req, res, next) {
     var usersCollection = dbo.collection('users');
     usersCollection.findOne({
-        username: req.body.username,
-        password:req.body.password
-    }, function(err, item) {
+        email: req.body.email,
+        password: req.body.password,
+        account: req.body.account
+    }, function (err, item) {
         res.send(item);
     });
 });

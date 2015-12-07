@@ -6,18 +6,26 @@ package com.cms.cms;
 
 public class User {
 
-    String name, username, password;
+    String name, email, password, address, department, ssn, account;
     int age;
 
-    public User(String name, int age, String username, String password) {
+    public User(String name, int age, String email, String password, String address, String department, String ssn, String account) {
         this.name = name;
         this.age = age;
-        this.username = username;
+        this.email = email;
         this.password = password;
+        this.address = address;
+        this.department = department;
+        this.ssn = ssn;
+        this.account = account;
     }
 
-    public User(String username, String password) {
-        this("", -1, username, password);
+    public User(String email, String password) {
+        this("", -1, email, password, "", "", "", "");
+    }
+
+    public User(String email, String password, String account) {
+        this("", -1, email, password, "", "", "", account);
     }
 }
 
