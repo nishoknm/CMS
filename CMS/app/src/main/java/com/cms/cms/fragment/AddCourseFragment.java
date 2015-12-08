@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.cms.cms.R;
 import com.cms.cms.model.NodeRequests;
@@ -107,9 +108,15 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
                     serverRequest.updateCourseDeptAsyncTask(new GetModifyCallback() {
                         @Override
                         public void done() {
-
+                            Toast.makeText(
+                                    AddCourseFragment.this.getActivity().getApplicationContext(), "Added " + course,
+                                    Toast.LENGTH_LONG).show();
                         }
                     });
+                } else if (user.account.equalsIgnoreCase("student")) {
+                    Toast.makeText(
+                            AddCourseFragment.this.getActivity().getApplicationContext(), "Added " + course,
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });
