@@ -24,6 +24,14 @@ router.post('/getDepartments', function (req, res) {
 });
 
 /* POST users listing. */
+router.post('/getDepartment', function (req, res) {
+    var deptCollection = dbo.collection('departments');
+    deptCollection.findOne({name: req.body.department}, function (err, item) {
+        res.send(item);
+    });
+});
+
+/* POST users listing. */
 router.post('/getAccounts', function (req, res) {
     var deptCollection = dbo.collection('accounts');
     deptCollection.find().toArray(function (err, docs) {
@@ -62,7 +70,7 @@ router.post('/addCourse', function (req, res, next) {
     var usersCollection = dbo.collection('users');
     usersCollection.update({
         email: req.body.email
-    }, {$addToSet: {courses: {name: req.body.course}}});
+    }, {$addToSet: {courses: {name: req.body.course, department: req.body.department}}});
     res.send("Success");
 });
 

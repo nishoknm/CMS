@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class NodeRequests {
     ProgressDialog progressDialog;
-    public String callType, email, courseAdd;
+    public String callType, email, courseAdd, dept;
     public boolean course, isDelete;
     public static final int CONNECTION_TIMEOUT = 1000 * 15;
     public static final String SERVER_ADDRESS = "http://10.0.2.2:8090/users/";
@@ -55,8 +55,16 @@ public class NodeRequests {
         this.isDelete = isDelete;
     }
 
-    public NodeRequests(Context context, String email, String course) {
-        this(context, email, course, false);
+    public NodeRequests(Context context, String email, String course, String dept, boolean isDelete) {
+        this(context);
+        this.email = email;
+        this.courseAdd = course;
+        this.isDelete = isDelete;
+        this.dept = dept;
+    }
+
+    public NodeRequests(Context context, String email, String course, String dept) {
+        this(context, email, course, dept, false);
     }
 
     public NodeRequests(Context context, String callType, boolean course) {
@@ -83,6 +91,11 @@ public class NodeRequests {
     public void fetchCollectionAsyncTask(GetCallback deptCallback) {
         progressDialog.show();
         new fetchCollectionAsyncTask(deptCallback).execute();
+    }
+
+    public void fetchCourseJSONAsyncTask(GetListCallback listCallback) {
+        progressDialog.show();
+        new fetchCourseJSONAsyncTask(listCallback).execute();
     }
 
     public void updateCourseAsyncTask(GetModifyCallback callback) {
@@ -183,6 +196,86 @@ public class NodeRequests {
 
     }
 
+    public class fetchCourseJSONAsyncTask extends AsyncTask<Void, Void, ArrayList<JSONObject>> {
+        GetListCallback userCallBack;
+
+        public fetchCourseJSONAsyncTask(GetListCallback userCallBack) {
+            this.userCallBack = userCallBack;
+        }
+
+        @Override
+        protected ArrayList<JSONObject> doInBackground(Void... params) {
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("department", dept);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
+            ArrayList<JSONObject> collectionList = new ArrayList<JSONObject>();
+
+            try {
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + "getDepartment");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+
+                String result = sb.toString();
+                JSONObject deptJSON = new JSONObject(result);
+                JSONObject courseJSON = (JSONObject) deptJSON.get("courses");
+                for (int i = 0; i < courseJSON.length(); i++) {
+                    if (courseJSON.getJSONObject("c" + (i + 1)).get("name").toString().equalsIgnoreCase(courseAdd)) {
+                        collectionList.add(courseJSON.getJSONObject("c" + (i + 1)));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return collectionList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<JSONObject> courses) {
+            super.onPostExecute(courses);
+            progressDialog.dismiss();
+            userCallBack.done(courses);
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
+        }
+    }
+
     public class updateCourseAsyncTask extends AsyncTask<Void, Void, Void> {
         GetModifyCallback callBack;
 
@@ -196,6 +289,7 @@ public class NodeRequests {
             Map<String, String> dataToSend = new HashMap<>();
             dataToSend.put("email", email);
             dataToSend.put("course", courseAdd);
+            dataToSend.put("department", dept);
             String encodedStr = getEncodedData(dataToSend);
             BufferedReader reader = null;
             String address = "addCourse";
@@ -357,7 +451,7 @@ public class NodeRequests {
         }
     }
 
-    public class fetchUserCoursesDataAsyncTask extends AsyncTask<Void, Void, ArrayList<String>> {
+    public class fetchUserCoursesDataAsyncTask extends AsyncTask<Void, Void, ArrayList<JSONObject>> {
         User user;
         GetListCallback userCallBack;
 
@@ -367,12 +461,12 @@ public class NodeRequests {
         }
 
         @Override
-        protected ArrayList<String> doInBackground(Void... params) {
+        protected ArrayList<JSONObject> doInBackground(Void... params) {
             Map<String, String> dataToSend = new HashMap<>();
             dataToSend.put("email", user.email);
             String encodedStr = getEncodedData(dataToSend);
             BufferedReader reader = null;
-            ArrayList<String> collectionList = new ArrayList<String>();
+            ArrayList<JSONObject> collectionList = new ArrayList<JSONObject>();
 
             try {
                 //Converting address String to URL
@@ -396,7 +490,7 @@ public class NodeRequests {
                 JSONObject jObject = new JSONObject(result);
                 JSONArray courses = (JSONArray) jObject.get("courses");
                 for (int i = 0; i < courses.length(); i++) {
-                    collectionList.add(courses.getJSONObject(i).get("name").toString());
+                    collectionList.add(courses.getJSONObject(i));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -413,7 +507,7 @@ public class NodeRequests {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<String> courses) {
+        protected void onPostExecute(ArrayList<JSONObject> courses) {
             super.onPostExecute(courses);
             progressDialog.dismiss();
             userCallBack.done(courses);
