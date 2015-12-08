@@ -12,8 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.cms.cms.R;
+import com.cms.cms.model.User;
+import com.cms.cms.model.UserLocalStore;
 
 public class CoursesFragment extends Fragment {
+    UserLocalStore userlocalstore;
+    User user;
 
     public CoursesFragment() {
         // Required empty public constructor
@@ -24,10 +28,18 @@ public class CoursesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_courses, container, false);
-
+        userlocalstore = new UserLocalStore(this.getActivity());
+        user = userlocalstore.getLoggedInUser();
         TabLayout tabLayout = (TabLayout) inflatedView.findViewById(R.id.tabLayout);
-        tabLayout.addTab(tabLayout.newTab().setText("ADD"));
-        tabLayout.addTab(tabLayout.newTab().setText("REGISTERED"));
+
+        if (user.account.equalsIgnoreCase("student")) {
+            tabLayout.addTab(tabLayout.newTab().setText("ADD"));
+            tabLayout.addTab(tabLayout.newTab().setText("REGISTERED"));
+        } else if (user.account.equalsIgnoreCase("professor")) {
+            tabLayout.addTab(tabLayout.newTab().setText("AVAILABLE"));
+            tabLayout.addTab(tabLayout.newTab().setText("TEACHING"));
+        }
+
         final ViewPager viewPager = (ViewPager) inflatedView.findViewById(R.id.viewpager);
 
         viewPager.setAdapter(new PagerAdapter(getFragmentManager(), tabLayout.getTabCount()));

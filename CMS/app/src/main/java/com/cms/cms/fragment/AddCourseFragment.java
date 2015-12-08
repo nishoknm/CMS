@@ -10,7 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.cms.cms.R;
 import com.cms.cms.model.NodeRequests;
@@ -97,12 +96,21 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
         }
     }
 
-    private void addCourse( String course, String courseDept) {
-        User user = userLocalStore.getLoggedInUser();
+    private void addCourse(final String course, final String courseDept) {
+        final User user = userLocalStore.getLoggedInUser();
         NodeRequests serverRequest = new NodeRequests(this.getActivity(), user.email, course, courseDept);
         serverRequest.updateCourseAsyncTask(new GetModifyCallback() {
             @Override
             public void done() {
+                if (user.account.equalsIgnoreCase("professor")) {
+                    NodeRequests serverRequest = new NodeRequests(AddCourseFragment.this.getActivity(), user.email, course, courseDept);
+                    serverRequest.updateCourseDeptAsyncTask(new GetModifyCallback() {
+                        @Override
+                        public void done() {
+
+                        }
+                    });
+                }
             }
         });
     }
@@ -112,13 +120,6 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
         Spinner spinner = (Spinner) parent;
         if (spinner.getId() == R.id.etDept) {
             getCourses(parent.getItemAtPosition(position).toString());
-        } else {
-            if (spinner.getId() == R.id.etCourse) {
-                Toast.makeText(
-                        this.getActivity().getApplicationContext(),
-                        parent.getItemAtPosition(position).toString() + " Selected",
-                        Toast.LENGTH_LONG).show();
-            }
         }
     }
 

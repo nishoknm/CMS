@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.cms.cms.R;
 import com.cms.cms.fragment.CourseDialogFragment;
 import com.cms.cms.model.NodeRequests;
+import com.cms.cms.model.User;
 import com.cms.cms.model.UserLocalStore;
 import com.cms.cms.model.callback.GetListCallback;
 import com.cms.cms.model.callback.GetModifyCallback;
@@ -103,15 +104,30 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         }
 
         private void deleteCourse(final String course, final String selectDpt) {
-            NodeRequests serverRequest = new NodeRequests(cardAdapter.activity, (new UserLocalStore(cardAdapter.activity)).getLoggedInUser().email, course, selectDpt, true);
+            final User user = (new UserLocalStore(cardAdapter.activity)).getLoggedInUser();
+            NodeRequests serverRequest = new NodeRequests(cardAdapter.activity, user.email, course, selectDpt, true);
             serverRequest.updateCourseAsyncTask(new GetModifyCallback() {
                 @Override
                 public void done() {
-                    removeItem(viewHolder.getAdapterPosition());
-                    cardAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                    Toast.makeText(
-                            cardAdapter.activity.getApplicationContext(), "Deleted " + course,
-                            Toast.LENGTH_LONG).show();
+                    if (user.account.equalsIgnoreCase("professor")) {
+                        NodeRequests serverRequest = new NodeRequests(cardAdapter.activity, user.email, course, selectDpt, true);
+                        serverRequest.updateCourseDeptAsyncTask(new GetModifyCallback() {
+                            @Override
+                            public void done() {
+                                removeItem(viewHolder.getAdapterPosition());
+                                cardAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                                Toast.makeText(
+                                        cardAdapter.activity.getApplicationContext(), "Deleted " + course,
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else if (user.account.equalsIgnoreCase("student")) {
+                        removeItem(viewHolder.getAdapterPosition());
+                        cardAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        Toast.makeText(
+                                cardAdapter.activity.getApplicationContext(), "Deleted " + course,
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             });
         }

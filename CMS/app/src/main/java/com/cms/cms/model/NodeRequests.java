@@ -103,6 +103,11 @@ public class NodeRequests {
         new updateCourseAsyncTask(callback).execute();
     }
 
+    public void updateCourseDeptAsyncTask(GetModifyCallback callback) {
+        progressDialog.show();
+        new updateCourseDeptAsyncTask(callback).execute();
+    }
+
     /**
      * parameter sent to task upon execution progress published during
      * background computation result of the background computation
@@ -318,6 +323,120 @@ public class NodeRequests {
 
                 Log.i("custom_check", "The values received in the store part are as follows:");
                 Log.i("custom_check", line);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            //Same return null, but if you want to return the read string (stored in line)
+            //then change the parameters of AsyncTask and return that type, by converting
+            //the string - to say JSON or user in your case
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            progressDialog.dismiss();
+            callBack.done();
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
+        }
+
+    }
+
+    public class updateCourseDeptAsyncTask extends AsyncTask<Void, Void, Void> {
+        GetModifyCallback callBack;
+
+        public updateCourseDeptAsyncTask(GetModifyCallback callBack) {
+            this.callBack = callBack;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            //Use HashMap, it works similar to NameValuePair
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("department", dept);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
+
+            try {
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + "getDepartment");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                line = sb.toString();
+                String result = sb.toString();
+                JSONObject deptJSON = new JSONObject(result);
+                JSONObject courseJSON = (JSONObject) deptJSON.get("courses");
+                String courseIndex = "courses.c";
+                for (int i = 0; i < courseJSON.length(); i++) {
+                    if (courseJSON.getJSONObject("c" + (i + 1)).get("name").toString().equalsIgnoreCase(courseAdd)) {
+                        int index = (i + 1);
+                        courseIndex = courseIndex + index + ".professor";
+                    }
+                }
+                Log.i("custom_check", "The values received in the store part are as follows:");
+                Log.i("custom_check", line);
+
+                dataToSend = new HashMap<>();
+                dataToSend.put("email", email);
+                String address = "updateDepartmentProf";
+                if (isDelete) {
+                    address = "deleteDepartmentProf";
+                    dataToSend.put("email", "");
+                }
+                dataToSend.put("courseindex", courseIndex);
+                dataToSend.put("department", dept);
+                encodedStr = getEncodedData(dataToSend);
+
+
+                url = new URL(SERVER_ADDRESS + address);
+                con = (HttpURLConnection) url.openConnection();
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                line = sb.toString();
 
             } catch (Exception e) {
                 e.printStackTrace();

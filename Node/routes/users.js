@@ -75,6 +75,33 @@ router.post('/addCourse', function (req, res, next) {
 });
 
 /* POST users listing. */
+router.post('/updateDepartmentProf', function (req, res, next) {
+    var deptsCollection = dbo.collection('departments');
+    var profIndex = req.body.courseindex;
+    var course = {};
+    course[profIndex] = req.body.email;
+    course = flattenObject(course);
+    deptsCollection.update({
+        name: req.body.department
+    }, {$set: course});
+    res.send("Success");
+});
+
+/* POST users listing. */
+router.post('/deleteDepartmentProf', function (req, res, next) {
+    var deptsCollection = dbo.collection('departments');
+    var profIndex = req.body.courseindex;
+    var course = {};
+    course[profIndex] = req.body.email;
+    course = flattenObject(course);
+    console.log(course);
+    deptsCollection.update({
+        name: req.body.department
+    }, {$set: course});
+    res.send("Success");
+});
+
+/* POST users listing. */
 router.post('/deleteCourse', function (req, res, next) {
     var usersCollection = dbo.collection('users');
     usersCollection.update({
@@ -92,5 +119,27 @@ router.post("/addUser", function (req, res) {
         res.send(req.body);
     });
 });
+
+var flattenObject = function (ob) {
+    var toReturn = {};
+    var flatObject;
+    for (var i in ob) {
+        if (!ob.hasOwnProperty(i)) {
+            continue;
+        }
+        if ((typeof ob[i]) === 'object') {
+            flatObject = flattenObject(ob[i]);
+            for (var x in flatObject) {
+                if (!flatObject.hasOwnProperty(x)) {
+                    continue;
+                }
+                toReturn[i + (!!isNaN(x) ? '.' + x : '')] = flatObject[x];
+            }
+        } else {
+            toReturn[i] = ob[i];
+        }
+    }
+    return toReturn;
+};
 
 module.exports = router;
