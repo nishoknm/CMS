@@ -48,6 +48,34 @@ router.post('/getUser', function (req, res, next) {
 });
 
 /* POST users listing. */
+router.post('/getUserWithEmail', function (req, res, next) {
+    var usersCollection = dbo.collection('users');
+    usersCollection.findOne({
+        email: req.body.email
+    }, function (err, item) {
+        res.send(item);
+    });
+});
+
+/* POST users listing. */
+router.post('/addCourse', function (req, res, next) {
+    var usersCollection = dbo.collection('users');
+    usersCollection.update({
+        email: req.body.email
+    }, {$addToSet: {courses: {name: req.body.course}}});
+    res.send("Success");
+});
+
+/* POST users listing. */
+router.post('/deleteCourse', function (req, res, next) {
+    var usersCollection = dbo.collection('users');
+    usersCollection.update({
+        email: req.body.email
+    }, {$pull: {courses: {name: req.body.course}}});
+    res.send("Success");
+});
+
+/* POST users listing. */
 router.post("/addUser", function (req, res) {
     var usersCollection = dbo.collection('users');
     usersCollection.insert(req.body, {

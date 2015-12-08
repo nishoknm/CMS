@@ -11,6 +11,13 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.cms.cms.model.NodeRequests;
+import com.cms.cms.model.User;
+import com.cms.cms.model.callback.GetCallback;
+import com.cms.cms.model.callback.GetUserCallback;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CMSRegister extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
@@ -65,8 +72,8 @@ public class CMSRegister extends AppCompatActivity implements View.OnClickListen
         NodeRequests serverRequest = new NodeRequests(this, "departments");
         serverRequest.fetchCollectionAsyncTask(new GetCallback() {
             @Override
-            public void done(List items) {
-                populateDepartments(items);
+            public void done(HashMap<String, ArrayList> items) {
+                populateDepartments(items.get("departments"));
             }
         });
     }
@@ -80,10 +87,13 @@ public class CMSRegister extends AppCompatActivity implements View.OnClickListen
     private void getAccounts() {
         NodeRequests serverRequest = new NodeRequests(this, "accounts");
         serverRequest.fetchCollectionAsyncTask(new GetCallback() {
+            public ArrayList AccList;
+
             @Override
-            public void done(List accounts) {
-                accounts.remove("Admin");
-                populateAccounts(accounts);
+            public void done(HashMap<String, ArrayList> accounts) {
+                AccList = accounts.get("accounts");
+                AccList.remove("Admin");
+                populateAccounts(AccList);
             }
         });
     }

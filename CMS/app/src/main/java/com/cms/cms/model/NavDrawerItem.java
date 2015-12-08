@@ -1,4 +1,4 @@
-package com.cms.cms;
+package com.cms.cms.model;
 
 /**
  * Created by Nishok on 12/7/2015.

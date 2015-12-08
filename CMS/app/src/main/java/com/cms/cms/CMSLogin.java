@@ -13,6 +13,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cms.cms.model.NodeRequests;
+import com.cms.cms.model.User;
+import com.cms.cms.model.UserLocalStore;
+import com.cms.cms.model.callback.GetCallback;
+import com.cms.cms.model.callback.GetUserCallback;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CMSLogin extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
@@ -92,8 +100,8 @@ public class CMSLogin extends AppCompatActivity implements View.OnClickListener,
         NodeRequests serverRequest = new NodeRequests(this, "accounts");
         serverRequest.fetchCollectionAsyncTask(new GetCallback() {
             @Override
-            public void done(List accounts) {
-                populateAccounts(accounts);
+            public void done(HashMap<String, ArrayList> accounts) {
+                populateAccounts(accounts.get("accounts"));
             }
         });
     }

@@ -1,4 +1,4 @@
-package com.cms.cms;
+package com.cms.cms.adapter;
 
 /**
  * Created by Nishok on 12/7/2015.
@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.cms.cms.model.NavDrawerItem;
+import com.cms.cms.R;
 
 import java.util.ArrayList;
 

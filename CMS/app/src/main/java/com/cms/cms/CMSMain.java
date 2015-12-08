@@ -1,11 +1,11 @@
 package com.cms.cms;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +15,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import com.cms.cms.adapter.NavDrawerListAdapter;
+import com.cms.cms.fragment.CoursesFragment;
+import com.cms.cms.fragment.ProfileFragment;
+import com.cms.cms.model.NavDrawerItem;
+import com.cms.cms.model.UserLocalStore;
 
 import java.util.ArrayList;
 
@@ -87,8 +93,7 @@ public class CMSMain extends AppCompatActivity {
     private class SlideMenuClickListener implements
             ListView.OnItemClickListener {
         @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position,
-                                long id) {
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             // display view for selected nav drawer item
             displayView(position);
         }
@@ -129,9 +134,7 @@ public class CMSMain extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (authenticate() == true) {
-            //displayUserDetails();
-        }
+        authenticate();
     }
 
     private boolean authenticate() {
@@ -142,7 +145,6 @@ public class CMSMain extends AppCompatActivity {
         }
         return true;
     }
-
 
     @Override
     public void setTitle(CharSequence title) {
@@ -177,14 +179,17 @@ public class CMSMain extends AppCompatActivity {
         Fragment fragment = null;
         switch (position) {
             case 0:
-                fragment = new ProfileFragment(this);
+                fragment = new ProfileFragment();
+                break;
+            case 1:
+                fragment = new CoursesFragment();
                 break;
             default:
                 break;
         }
 
         if (fragment != null) {
-            FragmentManager fragmentManager = getFragmentManager();
+            FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
                     .replace(R.id.frame_container, fragment).commit();
             // update selected item and title, then close the drawer

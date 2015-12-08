@@ -1,4 +1,4 @@
-package com.cms.cms;
+package com.cms.cms.model;
 
 /**
  * Created by Nishok on 12/5/2015.
@@ -6,8 +6,8 @@ package com.cms.cms;
 
 public class User {
 
-    String name, email, password, address, department, ssn, account;
-    int age;
+    public String name, email, password, address, department, ssn, account;
+    public int age;
 
     public User(String name, int age, String email, String password, String address, String department, String ssn, String account) {
         this.name = name;

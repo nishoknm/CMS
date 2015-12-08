@@ -1,9 +1,14 @@
-package com.cms.cms;
+package com.cms.cms.model;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.cms.cms.model.callback.GetCallback;
+import com.cms.cms.model.callback.GetListCallback;
+import com.cms.cms.model.callback.GetModifyCallback;
+import com.cms.cms.model.callback.GetUserCallback;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,7 +23,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -27,7 +31,8 @@ import java.util.Map;
  */
 public class NodeRequests {
     ProgressDialog progressDialog;
-    public String callType;
+    public String callType, email, courseAdd;
+    public boolean course, isDelete;
     public static final int CONNECTION_TIMEOUT = 1000 * 15;
     public static final String SERVER_ADDRESS = "http://10.0.2.2:8090/users/";
 
@@ -43,6 +48,22 @@ public class NodeRequests {
         this.callType = callType;
     }
 
+    public NodeRequests(Context context, String email, String course, boolean isDelete) {
+        this(context);
+        this.email = email;
+        this.courseAdd = course;
+        this.isDelete = isDelete;
+    }
+
+    public NodeRequests(Context context, String email, String course) {
+        this(context, email, course, false);
+    }
+
+    public NodeRequests(Context context, String callType, boolean course) {
+        this(context, callType);
+        this.course = course;
+    }
+
     public void storeUserDataInBackground(User user,
                                           GetUserCallback userCallBack) {
         progressDialog.show();
@@ -54,9 +75,19 @@ public class NodeRequests {
         new fetchUserDataAsyncTask(user, userCallBack).execute();
     }
 
+    public void fetchUserCoursesDataAsyncTask(User user, GetListCallback userCallBack) {
+        progressDialog.show();
+        new fetchUserCoursesDataAsyncTask(user, userCallBack).execute();
+    }
+
     public void fetchCollectionAsyncTask(GetCallback deptCallback) {
         progressDialog.show();
         new fetchCollectionAsyncTask(deptCallback).execute();
+    }
+
+    public void updateCourseAsyncTask(GetModifyCallback callback) {
+        progressDialog.show();
+        new updateCourseAsyncTask(callback).execute();
     }
 
     /**
@@ -132,6 +163,90 @@ public class NodeRequests {
             super.onPostExecute(result);
             progressDialog.dismiss();
             userCallBack.done(null);
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
+        }
+
+    }
+
+    public class updateCourseAsyncTask extends AsyncTask<Void, Void, Void> {
+        GetModifyCallback callBack;
+
+        public updateCourseAsyncTask(GetModifyCallback callBack) {
+            this.callBack = callBack;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            //Use HashMap, it works similar to NameValuePair
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("email", email);
+            dataToSend.put("course", courseAdd);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
+            String address = "addCourse";
+            if (isDelete) {
+                address = "deleteCourse";
+            }
+            try {
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + address);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                line = sb.toString();
+
+                Log.i("custom_check", "The values received in the store part are as follows:");
+                Log.i("custom_check", line);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            //Same return null, but if you want to return the read string (stored in line)
+            //then change the parameters of AsyncTask and return that type, by converting
+            //the string - to say JSON or user in your case
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            progressDialog.dismiss();
+            callBack.done();
         }
 
         private String getEncodedData(Map<String, String> data) {
@@ -242,20 +357,101 @@ public class NodeRequests {
         }
     }
 
-    public class fetchCollectionAsyncTask extends AsyncTask<Void, Void, List> {
+    public class fetchUserCoursesDataAsyncTask extends AsyncTask<Void, Void, ArrayList<String>> {
+        User user;
+        GetListCallback userCallBack;
+
+        public fetchUserCoursesDataAsyncTask(User user, GetListCallback userCallBack) {
+            this.user = user;
+            this.userCallBack = userCallBack;
+        }
+
+        @Override
+        protected ArrayList<String> doInBackground(Void... params) {
+            Map<String, String> dataToSend = new HashMap<>();
+            dataToSend.put("email", user.email);
+            String encodedStr = getEncodedData(dataToSend);
+            BufferedReader reader = null;
+            ArrayList<String> collectionList = new ArrayList<String>();
+
+            try {
+                //Converting address String to URL
+                URL url = new URL(SERVER_ADDRESS + "getUserWithEmail");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                //Post Method
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(encodedStr);
+                writer.flush();
+                StringBuilder sb = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+
+                String result = sb.toString();
+                JSONObject jObject = new JSONObject(result);
+                JSONArray courses = (JSONArray) jObject.get("courses");
+                for (int i = 0; i < courses.length(); i++) {
+                    collectionList.add(courses.getJSONObject(i).get("name").toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return collectionList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> courses) {
+            super.onPostExecute(courses);
+            progressDialog.dismiss();
+            userCallBack.done(courses);
+        }
+
+        private String getEncodedData(Map<String, String> data) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : data.keySet()) {
+                String value = null;
+                try {
+                    value = URLEncoder.encode(data.get(key), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (sb.length() > 0)
+                    sb.append("&");
+
+                sb.append(key + "=" + value);
+            }
+            return sb.toString();
+        }
+    }
+
+    public class fetchCollectionAsyncTask extends AsyncTask<Void, Void, HashMap> {
         GetCallback callback;
         ArrayList<String> collectionList = new ArrayList<String>();
+        HashMap<String, ArrayList> deptCourseList = new HashMap<String, ArrayList>();
 
         public fetchCollectionAsyncTask(GetCallback callback) {
             this.callback = callback;
         }
 
         @Override
-        protected List doInBackground(Void... params) {
+        protected HashMap doInBackground(Void... params) {
             BufferedReader reader = null;
             String address = "getDepartments";
             String nameValue = "name";
-            if(callType == "accounts"){
+            if (callType == "accounts") {
                 address = "getAccounts";
                 nameValue = "value";
             }
@@ -274,8 +470,32 @@ public class NodeRequests {
                     sb.append(line + "\n");
                 }
                 JSONArray name = new JSONArray(sb.toString());
-                for (int i = 0; i < name.length(); i++) {
-                    collectionList.add(((JSONObject)name.get(i)).getString(nameValue));
+                if (address.contains("Departments")) {
+                    if (course) {
+                        for (int i = 0; i < name.length(); i++) {
+                            JSONObject dept = ((JSONObject) name.get(i));
+                            collectionList.add(dept.getString(nameValue));
+                            JSONObject courses = name.getJSONObject(i).getJSONObject("courses");
+                            ArrayList courseList = new ArrayList<String>();
+                            for (int j = 0; j < courses.length(); j++) {
+                                courseList.add(courses.getJSONObject("c" + (j + 1)).get("name"));
+                            }
+                            deptCourseList.put(dept.getString(nameValue), courseList);
+                        }
+                    } else {
+                        for (int i = 0; i < name.length(); i++) {
+                            JSONObject names = ((JSONObject) name.get(i));
+                            collectionList.add(names.getString(nameValue));
+                            deptCourseList.put("departments", collectionList);
+                        }
+                    }
+
+                } else {
+                    for (int i = 0; i < name.length(); i++) {
+                        JSONObject names = ((JSONObject) name.get(i));
+                        collectionList.add(names.getString(nameValue));
+                        deptCourseList.put("accounts", collectionList);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -288,11 +508,11 @@ public class NodeRequests {
                     }
                 }
             }
-            return collectionList;
+            return deptCourseList;
         }
 
         @Override
-        protected void onPostExecute(List result) {
+        protected void onPostExecute(HashMap result) {
             super.onPostExecute(result);
             progressDialog.dismiss();
             callback.done(result);

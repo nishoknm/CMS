@@ -1,4 +1,6 @@
-package com.cms.cms;
+package com.cms.cms.model.callback;
+
+import com.cms.cms.model.User;
 
 /**
  * Created by Nishok on 12/5/2015.
