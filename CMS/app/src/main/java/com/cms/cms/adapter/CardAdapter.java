@@ -1,13 +1,18 @@
 package com.cms.cms.adapter;
 
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cms.cms.R;
+import com.cms.cms.model.NodeRequests;
+import com.cms.cms.model.UserLocalStore;
+import com.cms.cms.model.callback.GetModifyCallback;
 
 import java.util.ArrayList;
 
@@ -16,10 +21,12 @@ import java.util.ArrayList;
  */
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     ArrayList<String> items;
+    FragmentActivity activity;
 
-    public CardAdapter(ArrayList<String> items) {
+    public CardAdapter(ArrayList<String> items, FragmentActivity activity) {
         super();
         this.items = items;
+        this.activity = activity;
     }
 
 
@@ -71,7 +78,20 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         public void onClick(View v) {
             String selectText = (String) ((TextView) viewHolder.itemView.findViewById(R.id.etCourse)).getText();
             removeItem(selectText);
+            deleteCourse(selectText);
             cardAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+        }
+
+        private void deleteCourse(final String course) {
+            NodeRequests serverRequest = new NodeRequests(cardAdapter.activity, (new UserLocalStore(cardAdapter.activity)).getLoggedInUser().email, course, true);
+            serverRequest.updateCourseAsyncTask(new GetModifyCallback() {
+                @Override
+                public void done() {
+                    Toast.makeText(
+                            cardAdapter.activity.getApplicationContext(), "Deleted " + course,
+                            Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
 

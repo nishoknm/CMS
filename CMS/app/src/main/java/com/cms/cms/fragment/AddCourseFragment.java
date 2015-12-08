@@ -90,14 +90,13 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bAddC:
-                String dept = etDept.getSelectedItem().toString();
                 String course = etCourse.getSelectedItem().toString();
-                addCourse(dept, course);
+                addCourse(course);
                 break;
         }
     }
 
-    private void addCourse(String dept, String course) {
+    private void addCourse( String course) {
         User user = userLocalStore.getLoggedInUser();
         NodeRequests serverRequest = new NodeRequests(this.getActivity(), user.email, course);
         serverRequest.updateCourseAsyncTask(new GetModifyCallback() {

@@ -24,7 +24,6 @@ public class CourseFragment extends Fragment {
     RecyclerView.LayoutManager mLayoutManager;
     CardAdapter mAdapter;
     UserLocalStore userLocalStore;
-    Button bLogin;
 
     public CourseFragment() {
         // Required empty public constructor
@@ -64,7 +63,7 @@ public class CourseFragment extends Fragment {
     }
 
     private void populateCourses(ArrayList courses) {
-        mAdapter = new CardAdapter(courses);
+        mAdapter = new CardAdapter(courses, this.getActivity());
         mRecyclerView.setAdapter(mAdapter);
     }
 
