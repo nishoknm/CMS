@@ -75,14 +75,23 @@ public class CoursesFragment extends Fragment {
 
             switch (position) {
                 case 0:
-                    AddCourseFragment tab1 = new AddCourseFragment();
+                    AddCourseFragment tab1 = new AddCourseFragment(this);
                     return tab1;
                 case 1:
-                    CourseFragment tab2 = new CourseFragment();
+                    CourseFragment tab2 = new CourseFragment(this);
                     return tab2;
                 default:
                     return null;
             }
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            if (object instanceof UpdateableFragment) {
+                ((UpdateableFragment) object).update();
+            }
+            //don't return POSITION_NONE, avoid fragment recreation.
+            return super.getItemPosition(object);
         }
 
         @Override

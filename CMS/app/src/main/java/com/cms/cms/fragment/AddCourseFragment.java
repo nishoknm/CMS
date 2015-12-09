@@ -27,8 +27,10 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
     Button bAddc;
     Spinner etDept, etCourse;
     UserLocalStore userLocalStore;
+    CoursesFragment.PagerAdapter pagerAdapter;
 
-    public AddCourseFragment() {
+    public AddCourseFragment(CoursesFragment.PagerAdapter pagerAdapter) {
+        this.pagerAdapter = pagerAdapter;
         // Required empty public constructor
     }
 
@@ -111,12 +113,14 @@ public class AddCourseFragment extends Fragment implements View.OnClickListener,
                             Toast.makeText(
                                     AddCourseFragment.this.getActivity().getApplicationContext(), "Added " + course,
                                     Toast.LENGTH_LONG).show();
+                            AddCourseFragment.this.pagerAdapter.notifyDataSetChanged();
                         }
                     });
                 } else if (user.account.equalsIgnoreCase("student")) {
                     Toast.makeText(
                             AddCourseFragment.this.getActivity().getApplicationContext(), "Added " + course,
                             Toast.LENGTH_LONG).show();
+                    AddCourseFragment.this.pagerAdapter.notifyDataSetChanged();
                 }
             }
         });

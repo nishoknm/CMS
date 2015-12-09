@@ -19,15 +19,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class CourseFragment extends Fragment {
+public class CourseFragment extends Fragment implements UpdateableFragment {
 
     RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     CardAdapter mAdapter;
     UserLocalStore userLocalStore;
+    CoursesFragment.PagerAdapter pagerAdapter;
 
-    public CourseFragment() {
+    public CourseFragment(CoursesFragment.PagerAdapter pagerAdapter) {
         // Required empty public constructor
+        this.pagerAdapter = pagerAdapter;
     }
 
 
@@ -68,4 +70,8 @@ public class CourseFragment extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
     }
 
+    @Override
+    public void update() {
+        getCourses();
+    }
 }
