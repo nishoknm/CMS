@@ -1,5 +1,5 @@
 # CMS
-College Management System - Android Application
+Campus Administration/ Management System - Android Application
 
 # Frameworks:
 * Android - Client
