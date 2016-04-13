@@ -1,5 +1,5 @@
 # CMS
-College Management System - Android Application
+Campus Administration/ Management System - Android Application
 
 # Frameworks:
 * Android - Client
@@ -7,7 +7,7 @@ College Management System - Android Application
 * MongoDb - Backend Database
 
 # Summary:
-Unified management system for college purposes, where any type of user such as student, professor, administrator , payroll or any other professional related to college can view information that is meant for him/her.
+Unified and secured administration/management system for college purposes, where any type of user such as student, professor, administrator , payroll or any other professional related to college can view information that is meant only for him/her.
 
 # Demo
 ![Alt text](/artifacts/images/LoginStudent.gif)![Alt text](/artifacts/images/StudentLogin2.gif)
